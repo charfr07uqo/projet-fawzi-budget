@@ -1,0 +1,278 @@
+/**
+ * Composant de vue budgétaire mensuelle - Affichage du résumé budgétaire mensuel avec graphiques
+ *
+ * Fonctionnalités métier :
+ * - Affichage des revenus, dépenses et budget restant mensuels
+ * - Calcul et affichage du ratio de dépenses en pourcentage
+ * - Répartition des dépenses par fréquence (hebdomadaire/mensuel/annuel)
+ * - Graphique en barres des dépenses par catégorie pour le mois en cours
+ * - Graphique linéaire des tendances budgétaires sur l'année
+ * - Codage couleur pour indiquer surplus ou déficit
+ *
+ * Objectif : Fournir une vue d'ensemble claire de la situation
+ * budgétaire mensuelle, avec des indicateurs visuels et graphiques
+ * pour faciliter la compréhension de la santé financière.
+ *
+ * @created 2025-09-29
+ * @author Équipe Développement
+ */
+import { useBudget } from '../../contexts/BudgetContext.jsx'
+import { getMonthlyAmount } from '../../utils/calculations.js'
+import { formatCurrency } from '../../utils/formatters.js'
+import { EXPENSE_FREQUENCIES, EXPENSE_FREQUENCY_LABELS, EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS, MONTH_LABELS, ALL_MONTHS } from '../../models/constants.js'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card.jsx'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
+
+/**
+ * Composant d'affichage de la vue budgétaire mensuelle
+ * Calcule et affiche les métriques budgétaires mensuelles
+ */
+function MonthlyBudgetView() {
+  const { salary, expenses, monthlyBudgetSummary } = useBudget()
+
+  // Mois en cours (format YYYY-MM)
+  const currentMonth = new Date().toISOString().slice(0, 7)
+
+  // Calcul de la répartition par fréquence
+  const frequencyBreakdown = expenses.reduce((acc, expense) => {
+    const monthlyAmount = getMonthlyAmount(expense.amount, expense.frequency)
+    acc[expense.frequency] = (acc[expense.frequency] || 0) + monthlyAmount
+    return acc
+  }, {})
+
+  const weeklyExpenses = frequencyBreakdown[EXPENSE_FREQUENCIES.WEEKLY] || 0
+  const monthlyExpenses = frequencyBreakdown[EXPENSE_FREQUENCIES.MONTHLY] || 0
+  const annualExpenses = frequencyBreakdown[EXPENSE_FREQUENCIES.ANNUAL] || 0
+
+  // Revenus mensuels
+  const monthlyIncome = salary ? salary / 12 : 0
+
+  // Données pour le graphique en barres - Dépenses par catégorie pour le mois en cours
+  const currentMonthCategoryData = expenses.reduce((acc, expense) => {
+    if (expense.months && expense.months.includes(currentMonth)) {
+      const monthlyAmount = getMonthlyAmount(expense.amount, expense.frequency)
+      acc[expense.category] = (acc[expense.category] || 0) + monthlyAmount
+    }
+    return acc
+  }, {})
+
+  const categoryChartData = [
+    {
+      category: EXPENSE_CATEGORY_LABELS[EXPENSE_CATEGORIES.FIXED],
+      amount: currentMonthCategoryData[EXPENSE_CATEGORIES.FIXED] || 0,
+      color: '#3b82f6' // Bleu
+    },
+    {
+      category: EXPENSE_CATEGORY_LABELS[EXPENSE_CATEGORIES.VARIABLE],
+      amount: currentMonthCategoryData[EXPENSE_CATEGORIES.VARIABLE] || 0,
+      color: '#f59e0b' // Orange
+    }
+  ].filter(item => item.amount > 0) // Ne montrer que les catégories avec des dépenses
+
+  // Données pour le graphique linéaire - Tendances budgétaires sur l'année
+  const budgetTrendsData = ALL_MONTHS.map(month => {
+    const monthlyExpensesForMonth = expenses.reduce((total, expense) => {
+      if (expense.months && expense.months.includes(month)) {
+        return total + getMonthlyAmount(expense.amount, expense.frequency)
+      }
+      return total
+    }, 0)
+
+    const monthlyIncomeForMonth = salary ? salary / 12 : 0
+    const remainingBudget = monthlyIncomeForMonth - monthlyExpensesForMonth
+
+    return {
+      month: MONTH_LABELS[month] || month,
+      expenses: Math.round(monthlyExpensesForMonth * 100) / 100,
+      income: Math.round(monthlyIncomeForMonth * 100) / 100,
+      remaining: Math.round(remainingBudget * 100) / 100
+    }
+  })
+
+  // Classes CSS pour le codage couleur
+  const remainingColorClass = monthlyBudgetSummary.isPositive
+    ? 'text-green-600'
+    : 'text-red-600'
+
+  const ratioColorClass = monthlyBudgetSummary.budgetRatio > 0.8
+    ? 'text-red-600'
+    : monthlyBudgetSummary.budgetRatio > 0.6
+    ? 'text-yellow-600'
+    : 'text-green-600'
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-center">Vue Budgétaire Mensuelle</h2>
+
+      {/* Métriques principales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Revenus Mensuels
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(monthlyIncome)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Dépenses Totales
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(monthlyBudgetSummary.totalExpenses)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Budget Restant
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${remainingColorClass}`}>
+              {formatCurrency(monthlyBudgetSummary.remainingBudget)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Ratio de Dépenses
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${ratioColorClass}`}>
+              {(monthlyBudgetSummary.budgetRatio * 100).toFixed(1)}%
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Graphiques */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Graphique en barres - Dépenses par catégorie ce mois */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Dépenses par Catégorie - {MONTH_LABELS[currentMonth] || currentMonth}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {categoryChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={categoryChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" />
+                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                  <Tooltip formatter={(value) => [formatCurrency(value), 'Montant']} />
+                  <Bar dataKey="amount" fill="#3b82f6" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                Aucune dépense pour ce mois
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Graphique linéaire - Tendances budgétaires */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tendances Budgétaires Annuelles</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={budgetTrendsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="month"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  interval={0}
+                />
+                <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                <Tooltip formatter={(value) => [formatCurrency(value), '']} />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="income"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  name="Revenus"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="expenses"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  name="Dépenses"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="remaining"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  name="Solde"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Répartition par fréquence (liste détaillée) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Détail par Fréquence</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="font-medium">
+                {EXPENSE_FREQUENCY_LABELS[EXPENSE_FREQUENCIES.WEEKLY]}
+              </span>
+              <span className="font-bold">
+                {formatCurrency(weeklyExpenses)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-medium">
+                {EXPENSE_FREQUENCY_LABELS[EXPENSE_FREQUENCIES.MONTHLY]}
+              </span>
+              <span className="font-bold">
+                {formatCurrency(monthlyExpenses)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-medium">
+                {EXPENSE_FREQUENCY_LABELS[EXPENSE_FREQUENCIES.ANNUAL]}
+              </span>
+              <span className="font-bold">
+                {formatCurrency(annualExpenses)}
+              </span>
+            </div>
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center font-bold">
+                <span>Total</span>
+                <span>{formatCurrency(monthlyBudgetSummary.totalExpenses)}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+export default MonthlyBudgetView

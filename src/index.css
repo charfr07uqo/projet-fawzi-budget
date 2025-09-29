@@ -1,0 +1,390 @@
+/**
+ * Fichier de styles principal - Système de design et configuration Tailwind CSS
+ *
+ * Fonctionnalités métier :
+ * - Définition des tokens de design (couleurs, espacement, typographie)
+ * - Configuration Tailwind CSS avec variables personnalisées
+ * - Styles de base pour l'application
+ *
+ * Objectif : Fournir une base cohérente pour tous les styles
+ * de l'application avec un système de design unifié.
+ *
+ * @created 2025-09-29
+ * @author Équipe Développement
+ */
+
+@import "tailwindcss";
+
+/* Configuration Tailwind v4 */
+@theme {
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-900: #1e3a8a;
+
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569;
+  --color-secondary-900: #0f172a;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #06b6d4;
+
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --border-radius-xl: 12px;
+  --border-radius-2xl: 16px;
+  --border-radius-full: 9999px;
+
+  --box-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --box-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --box-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --box-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  --transition-duration-fast: 150ms;
+  --transition-duration-normal: 200ms;
+  --transition-duration-slow: 300ms;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* Design System Tokens */
+:root {
+  /* Palette de couleurs primaires */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-900: #1e3a8a;
+
+  /* Palette de couleurs secondaires */
+  --color-secondary-50: #f8fafc;
+  --color-secondary-100: #f1f5f9;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569;
+  --color-secondary-900: #0f172a;
+
+  /* Palette de couleurs sémantiques */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #06b6d4;
+
+  /* Couleurs de fond et texte - Thème clair amélioré */
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-card: #ffffff;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+
+  /* Système d'espacement cohérent */
+  --space-1: 4px;    /* 0.25rem */
+  --space-2: 8px;    /* 0.5rem */
+  --space-3: 12px;   /* 0.75rem */
+  --space-4: 16px;   /* 1rem */
+  --space-5: 20px;   /* 1.25rem */
+  --space-6: 24px;   /* 1.5rem */
+  --space-8: 32px;   /* 2rem */
+  --space-10: 40px;  /* 2.5rem */
+  --space-12: 48px;  /* 3rem */
+  --space-16: 64px;  /* 4rem */
+  --space-20: 80px;  /* 5rem */
+
+  /* Système typographique */
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  /* Tailles de police */
+  --text-xs: 12px;   /* 0.75rem */
+  --text-sm: 14px;   /* 0.875rem */
+  --text-base: 16px; /* 1rem */
+  --text-lg: 18px;   /* 1.125rem */
+  --text-xl: 20px;   /* 1.25rem */
+  --text-2xl: 24px;  /* 1.5rem */
+  --text-3xl: 30px;  /* 1.875rem */
+  --text-4xl: 36px;  /* 2.25rem */
+
+  /* Poids de police */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Rayons de bordure */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* Ombres */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Points de rupture responsive */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/* Styles d'amélioration de l'interface */
+@layer components {
+  /* Style des cartes principales */
+  .budget-card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-lg p-8 transition-all duration-300 hover:shadow-xl;
+  }
+
+  /* Style des en-têtes de section */
+  .section-header {
+    @apply text-2xl font-bold text-gray-900 border-b border-gray-200 pb-4 mb-6;
+  }
+
+  /* Style des formulaires */
+  .form-group {
+    @apply mb-6;
+  }
+
+  .form-label {
+    @apply block text-sm font-semibold text-gray-700 mb-2;
+  }
+
+  .form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
+  }
+
+  .form-select {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white;
+  }
+
+  /* Styles spécifiques pour les composants Select de shadcn/ui */
+  .select-trigger {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 shadow-sm transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none;
+  }
+
+  .select-trigger:hover {
+    @apply border-gray-400;
+  }
+
+  .select-trigger:focus {
+    @apply ring-2 ring-blue-500 border-blue-500;
+  }
+
+  .select-trigger:disabled {
+    @apply bg-gray-50 text-gray-500 cursor-not-allowed;
+  }
+
+  .select-content {
+    @apply bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[200px];
+  }
+
+  .select-item {
+    @apply px-4 py-3 text-gray-900 cursor-pointer transition-colors duration-150;
+  }
+
+  .select-item:hover {
+    @apply bg-blue-50 text-blue-900;
+  }
+
+  .select-item[data-highlighted] {
+    @apply bg-blue-50 text-blue-900;
+  }
+
+  .select-separator {
+    @apply h-px bg-gray-200 my-1;
+  }
+
+  /* Ensure Select components appear above other elements */
+  [data-radix-select-content] {
+    z-index: 9999 !important;
+  }
+
+  /* Improve Select scrollbar */
+  .select-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .select-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .select-content::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+  }
+
+  .select-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.7);
+  }
+
+  /* Style des boutons */
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg;
+  }
+
+  .btn-success {
+    @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg;
+  }
+
+  /* Style du résumé budgétaire */
+  .budget-summary-grid {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-6;
+  }
+
+  .budget-summary-item {
+    @apply text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200;
+  }
+
+  .budget-summary-value {
+    @apply text-3xl font-bold text-blue-900 mb-2;
+  }
+
+  .budget-summary-label {
+    @apply text-sm font-medium text-blue-700 uppercase tracking-wide;
+  }
+
+  /* Style des éléments de dépenses */
+  .expense-item {
+    @apply flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200;
+  }
+
+  .expense-info {
+    @apply flex-1;
+  }
+
+  .expense-name {
+    @apply font-semibold text-gray-900;
+  }
+
+  .expense-details {
+    @apply text-sm text-gray-600 mt-1;
+  }
+
+  .expense-amount {
+    @apply font-bold text-lg text-red-600;
+  }
+
+  /* Style du salaire affiché */
+  .salary-display {
+    @apply text-center p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200;
+  }
+
+  .salary-amount {
+    @apply text-5xl font-bold text-green-900 mb-4;
+  }
+
+  .salary-label {
+    @apply text-lg font-medium text-green-700;
+  }
+
+  /* Animations */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive amélioré */
+  @media (max-width: 768px) {
+    .budget-card {
+      @apply p-6;
+    }
+
+    .section-header {
+      @apply text-xl;
+    }
+  }
+}
+
+/* Styles globaux améliorés */
+body {
+  @apply font-sans antialiased;
+}
+
+.container {
+  @apply mx-auto px-4;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}

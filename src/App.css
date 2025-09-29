@@ -1,0 +1,20 @@
+/* Styles spécifiques à l'application */
+#root {
+  min-height: 100vh;
+}
+
+/* Styles pour les animations d'entrée */
+.app-fade-in {
+  animation: appFadeIn 0.8s ease-out;
+}
+
+@keyframes appFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
