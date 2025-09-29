@@ -27,7 +27,7 @@ function BudgetSummary() {
   const [currentView, setCurrentView] = useState('annual') // 'annual' ou 'monthly'
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* En-tête avec boutons de basculement */}
       <div className="flex items-center justify-center space-x-4">
         <Button

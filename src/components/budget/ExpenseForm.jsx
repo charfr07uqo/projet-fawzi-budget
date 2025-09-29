@@ -265,6 +265,45 @@ function ExpenseForm() {
 
       <div className="space-y-2">
         <Label className="flex items-center">
+          <Calendar className="w-4 h-4 mr-2" />
+          Mois associés
+        </Label>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="select-all-months"
+              checked={formData.months.length === ALL_MONTHS.length}
+              onChange={(e) => handleSelectAllMonths(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <Label htmlFor="select-all-months" className="text-sm font-medium">
+              Tous les mois
+            </Label>
+          </div>
+          {formData.months.length !== ALL_MONTHS.length && (
+            <div className="grid grid-cols-3 gap-2">
+              {ALL_MONTHS.map(month => (
+                <div key={month} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`month-${month}`}
+                    checked={formData.months.includes(month)}
+                    onChange={(e) => handleMonthChange(month, e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <Label htmlFor={`month-${month}`} className="text-sm">
+                    {MONTH_LABELS[month]}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center">
           <Tag className="w-4 h-4 mr-2" />
           {UI_LABELS.CATEGORY}
         </Label>
@@ -289,43 +328,6 @@ function ExpenseForm() {
             {errors.category}
           </p>
         )}
-      </div>
-
-      <div className="space-y-2">
-        <Label className="flex items-center">
-          <Calendar className="w-4 h-4 mr-2" />
-          Mois associés
-        </Label>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="select-all-months"
-              checked={formData.months.length === ALL_MONTHS.length}
-              onChange={(e) => handleSelectAllMonths(e.target.checked)}
-              className="rounded border-gray-300"
-            />
-            <Label htmlFor="select-all-months" className="text-sm font-medium">
-              Tous les mois
-            </Label>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {ALL_MONTHS.map(month => (
-              <div key={month} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id={`month-${month}`}
-                  checked={formData.months.includes(month)}
-                  onChange={(e) => handleMonthChange(month, e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                <Label htmlFor={`month-${month}`} className="text-sm">
-                  {MONTH_LABELS[month]}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {errors.general && (

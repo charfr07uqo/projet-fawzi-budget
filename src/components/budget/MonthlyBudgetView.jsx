@@ -101,11 +101,11 @@ function MonthlyBudgetView() {
     : 'text-green-600'
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <h2 className="text-2xl font-bold text-center">Vue Budgétaire Mensuelle</h2>
 
       {/* Métriques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -160,7 +160,7 @@ function MonthlyBudgetView() {
       </div>
 
       {/* Graphiques */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Graphique en barres - Dépenses par catégorie ce mois */}
         <Card>
           <CardHeader>
@@ -232,7 +232,7 @@ function MonthlyBudgetView() {
       </div>
 
       {/* Répartition par fréquence (liste détaillée) */}
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Détail par Fréquence</CardTitle>
         </CardHeader>

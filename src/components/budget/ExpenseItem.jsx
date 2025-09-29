@@ -22,7 +22,9 @@ import { formatExpenseAmount } from '../../utils/formatters.js'
 import {
   EXPENSE_FREQUENCY_LABELS,
   EXPENSE_CATEGORY_LABELS,
-  UI_LABELS
+  UI_LABELS,
+  MONTH_LABELS,
+  ALL_MONTHS
 } from '../../models/constants.js'
 
 /**
@@ -63,18 +65,29 @@ function ExpenseItem({ expense }) {
           {formatExpenseAmount(expense.amount, expense.frequency)}
         </span>
 
-        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-          <span className="flex items-center">
-            <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-            {EXPENSE_FREQUENCY_LABELS[expense.frequency]}
-          </span>
+        <div className="flex flex-col space-y-2 text-sm text-muted-foreground">
+          <div className="flex items-center space-x-4">
+            <span className="flex items-center">
+              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+              {EXPENSE_FREQUENCY_LABELS[expense.frequency]}
+            </span>
 
-          <span className="flex items-center">
-            <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-              expense.category === 'fixed' ? 'bg-orange-500' : 'bg-purple-500'
-            }`}></span>
-            {EXPENSE_CATEGORY_LABELS[expense.category]}
-          </span>
+            <span className="flex items-center">
+              <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                expense.category === 'fixed' ? 'bg-orange-500' : 'bg-purple-500'
+              }`}></span>
+              {EXPENSE_CATEGORY_LABELS[expense.category]}
+            </span>
+          </div>
+
+          {expense.months && expense.months.length !== ALL_MONTHS.length && (
+            <div className="flex items-center">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+              <span className="text-xs">
+                Mois: {expense.months.map(month => MONTH_LABELS[month]).join(', ')}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
