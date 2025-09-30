@@ -2,13 +2,14 @@
  * Contexte de gestion du budget - État global de l'application budgétaire
  *
  * Fonctionnalités métier :
- * - Gestion centralisée du salaire annuel
- * - Gestion de la liste des dépenses avec CRUD complet
+ * - Gestion centralisée des personnes et de leurs salaires
+ * - Gestion de la liste des dépenses avec CRUD complet et assignation
  * - État de chargement pour les opérations asynchrones
- * - Actions pour modifier l'état du budget
+ * - Actions pour modifier l'état du budget et gérer les personnes
+ * - Migration automatique des données existantes
  *
  * Objectif : Fournir un état global cohérent et réactif
- * pour la gestion du budget personnel, permettant
+ * pour la gestion du budget familial/multi-personnes, permettant
  * aux composants de partager et modifier les données
  * budgétaires de manière synchronisée.
  *
@@ -17,14 +18,43 @@
  */
 
 import { createContext, useContext, useReducer, useMemo } from 'react'
-import { BUDGET_ACTIONS, ALL_MONTHS } from '../models/constants.js'
+import { BUDGET_ACTIONS, ALL_MONTHS, DEFAULT_PEOPLE } from '../models/constants.js'
 import { calculateAnnualBudget, calculateMonthlyBudget } from '../utils/calculations.js'
 
 // État initial du budget
 const initialState = {
-  salary: null, // Salaire annuel (null si non défini)
+  people: [], // Liste des personnes avec leurs salaires (vide par défaut)
   expenses: [], // Liste des dépenses
   isLoading: false // État de chargement
+}
+
+/**
+ * Migre l'état existant vers la nouvelle structure avec personnes
+ * Convertit un salaire unique en première personne si nécessaire
+ * @param {object} state - État actuel à migrer
+ * @returns {object} État migré
+ */
+const migrateState = (state) => {
+  // Si l'état a déjà la structure people, pas de migration nécessaire
+  if (state.people) {
+    return state
+  }
+
+  // Migration : convertir salary en première personne
+  const migratedPeople = [...DEFAULT_PEOPLE]
+  if (state.salary && state.salary > 0) {
+    migratedPeople[0] = {
+      ...migratedPeople[0],
+      salary: state.salary
+    }
+  }
+
+  return {
+    ...state,
+    people: migratedPeople,
+    // Supprimer l'ancien champ salary
+    salary: undefined
+  }
 }
 
 /**
@@ -35,10 +65,46 @@ const initialState = {
  */
 function budgetReducer(state, action) {
   switch (action.type) {
-    case BUDGET_ACTIONS.SET_SALARY:
+    case BUDGET_ACTIONS.SET_PEOPLE:
       return {
         ...state,
-        salary: action.payload
+        people: action.payload
+      }
+
+    case BUDGET_ACTIONS.ADD_PERSON:
+      return {
+        ...state,
+        people: [...state.people, {
+          ...action.payload,
+          id: action.payload.id || `person-${Date.now()}`, // ID unique basé sur timestamp
+          salary: action.payload.salary || 0
+        }]
+      }
+
+    case BUDGET_ACTIONS.UPDATE_PERSON:
+      return {
+        ...state,
+        people: state.people.map(person =>
+          person.id === action.payload.id
+            ? { ...person, ...action.payload }
+            : person
+        )
+      }
+
+    case BUDGET_ACTIONS.DELETE_PERSON:
+      return {
+        ...state,
+        people: state.people.filter(person => person.id !== action.payload)
+      }
+
+    case BUDGET_ACTIONS.SET_PERSON_SALARY:
+      return {
+        ...state,
+        people: state.people.map(person =>
+          person.id === action.payload.personId
+            ? { ...person, salary: action.payload.salary }
+            : person
+        )
       }
 
     case BUDGET_ACTIONS.ADD_EXPENSE:
@@ -46,6 +112,7 @@ function budgetReducer(state, action) {
         ...state,
         expenses: [...state.expenses, {
           ...action.payload,
+          assignedTo: action.payload.assignedTo || state.people[0]?.id, // Défaut à première personne si non spécifié
           months: action.payload.months || ALL_MONTHS, // Défaut à tous les mois si non spécifié
           id: Date.now().toString(), // ID unique basé sur timestamp
           createdAt: new Date()
@@ -75,7 +142,7 @@ function budgetReducer(state, action) {
       }
 
     case BUDGET_ACTIONS.RESET_BUDGET:
-      return initialState
+      return { ...initialState }
 
     default:
       return state
@@ -90,23 +157,64 @@ const BudgetContext = createContext()
  * Fournit l'état et les actions aux composants enfants
  */
 export function BudgetProvider({ children }) {
-  const [state, dispatch] = useReducer(budgetReducer, initialState)
+  const [rawState, dispatch] = useReducer(budgetReducer, initialState)
+  const state = useMemo(() => migrateState(rawState), [rawState])
 
   // Calculs budgétaires automatiques avec mémorisation
   const annualBudgetSummary = useMemo(() => {
-    return calculateAnnualBudget(state.salary, state.expenses)
-  }, [state.salary, state.expenses])
+    return calculateAnnualBudget(state.people, state.expenses)
+  }, [state.people, state.expenses])
 
   const monthlyBudgetSummary = useMemo(() => {
-    return calculateMonthlyBudget(state.salary, state.expenses)
-  }, [state.salary, state.expenses])
+    return calculateMonthlyBudget(state.people, state.expenses)
+  }, [state.people, state.expenses])
 
   /**
-   * Définit le salaire annuel
+   * Définit la liste complète des personnes
+   * @param {Array} people - Liste des personnes
+   */
+  const setPeople = (people) => {
+    dispatch({ type: BUDGET_ACTIONS.SET_PEOPLE, payload: people })
+  }
+
+  /**
+   * Ajoute une nouvelle personne
+   * @param {object} person - Données de la personne (sans id)
+   */
+  const addPerson = (person) => {
+    dispatch({ type: BUDGET_ACTIONS.ADD_PERSON, payload: person })
+  }
+
+  /**
+   * Met à jour une personne existante
+   * @param {string} id - ID de la personne
+   * @param {object} updates - Données à mettre à jour
+   */
+  const updatePerson = (id, updates) => {
+    dispatch({
+      type: BUDGET_ACTIONS.UPDATE_PERSON,
+      payload: { id, ...updates }
+    })
+  }
+
+  /**
+   * Supprime une personne
+   * @param {string} id - ID de la personne à supprimer
+   */
+  const deletePerson = (id) => {
+    dispatch({ type: BUDGET_ACTIONS.DELETE_PERSON, payload: id })
+  }
+
+  /**
+   * Définit le salaire d'une personne spécifique
+   * @param {string} personId - ID de la personne
    * @param {number} salary - Salaire annuel
    */
-  const setSalary = (salary) => {
-    dispatch({ type: BUDGET_ACTIONS.SET_SALARY, payload: salary })
+  const setPersonSalary = (personId, salary) => {
+    dispatch({
+      type: BUDGET_ACTIONS.SET_PERSON_SALARY,
+      payload: { personId, salary }
+    })
   }
 
   /**
@@ -155,7 +263,7 @@ export function BudgetProvider({ children }) {
   // Valeur fournie par le contexte
   const value = {
     // État
-    salary: state.salary,
+    people: state.people,
     expenses: state.expenses,
     isLoading: state.isLoading,
 
@@ -164,7 +272,11 @@ export function BudgetProvider({ children }) {
     monthlyBudgetSummary,
 
     // Actions
-    setSalary,
+    setPeople,
+    addPerson,
+    updatePerson,
+    deletePerson,
+    setPersonSalary,
     addExpense,
     updateExpense,
     deleteExpense,

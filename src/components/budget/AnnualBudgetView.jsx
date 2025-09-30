@@ -16,7 +16,7 @@
  * @author Équipe Développement
  */
 import { useBudget } from '../../contexts/BudgetContext.jsx'
-import { getAnnualAmount, getMonthlyAmount } from '../../utils/calculations.js'
+import { getAnnualAmount, getMonthlyAmount, calculatePersonAnnualBudget } from '../../utils/calculations.js'
 import { formatCurrency } from '../../utils/formatters.js'
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS, MONTH_LABELS, ALL_MONTHS } from '../../models/constants.js'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card.jsx'
@@ -25,9 +25,18 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 /**
  * Composant d'affichage de la vue budgétaire annuelle
  * Calcule et affiche les métriques budgétaires annuelles
+ * Supporte les vues ménage et individuelles
  */
-function AnnualBudgetView() {
-  const { salary, expenses, annualBudgetSummary } = useBudget()
+function AnnualBudgetView({ viewMode = 'household' }) {
+  const { people, expenses, annualBudgetSummary } = useBudget()
+
+  // Calculs pour la vue individuelle
+  const personBudgets = viewMode === 'per-person'
+    ? people.map(person => ({
+        ...person,
+        budget: calculatePersonAnnualBudget(person.id, people, expenses)
+      })).filter(person => person.budget) // Filtrer les personnes sans budget
+    : []
 
   // Palette de couleurs pour les dépenses individuelles
   const expenseColors = [
@@ -87,65 +96,121 @@ function AnnualBudgetView() {
 
   return (
     <div className="w-full space-y-6">
-      <h2 className="text-2xl font-bold text-center">Vue Budgétaire Annuelle</h2>
+      <h2 className="text-2xl font-bold text-center">
+        Vue Budgétaire Annuelle {viewMode === 'per-person' ? '- Individuelle' : '- Ménage'}
+      </h2>
 
-      {/* Métriques principales */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Revenus Annuels
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(salary || 0)}
-            </div>
-          </CardContent>
-        </Card>
+      {viewMode === 'per-person' ? (
+        /* Vue Individuelle */
+        <div className="w-full space-y-6">
+          {personBudgets.map(person => (
+            <Card key={person.id} className="w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: person.color === 'pink' ? '#ec4899' : '#3b82f6' }}
+                  />
+                  <span>{person.name}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Salaire Annuel</div>
+                    <div className="text-xl font-bold">{formatCurrency(person.salary || 0)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Dépenses Personnelles</div>
+                    <div className="text-xl font-bold">{formatCurrency(person.budget.personalExpenses)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Part Dépenses Communes</div>
+                    <div className="text-xl font-bold">{formatCurrency(person.budget.sharedExpenses)}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Budget Restant</div>
+                    <div className={`text-xl font-bold ${person.budget.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(person.budget.remainingBudget)}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Total Dépenses</span>
+                    <span className="font-bold">{formatCurrency(person.budget.totalExpenses)}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="font-medium">Ratio de Dépenses</span>
+                    <span className={`font-bold ${person.budget.budgetRatio > 0.8 ? 'text-red-600' : person.budget.budgetRatio > 0.6 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {(person.budget.budgetRatio * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        /* Vue Ménage */
+        <>
+          {/* Métriques principales */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Revenus Annuels
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(people.reduce((total, person) => total + (person.salary || 0), 0))}
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Dépenses Totales
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(annualBudgetSummary.totalExpenses)}
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Dépenses Totales
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(annualBudgetSummary.totalExpenses)}
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Budget Restant
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${remainingColorClass}`}>
-              {formatCurrency(annualBudgetSummary.remainingBudget)}
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Budget Restant
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${remainingColorClass}`}>
+                  {formatCurrency(annualBudgetSummary.remainingBudget)}
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Ratio de Dépenses
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${ratioColorClass}`}>
-              {(annualBudgetSummary.budgetRatio * 100).toFixed(1)}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Ratio de Dépenses
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${ratioColorClass}`}>
+                  {(annualBudgetSummary.budgetRatio * 100).toFixed(1)}%
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
       {/* Graphiques */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full space-y-6">
         {/* Graphique circulaire - Répartition par dépense individuelle */}
         <Card>
           <CardHeader>
@@ -237,6 +302,8 @@ function AnnualBudgetView() {
           </div>
         </CardContent>
       </Card>
+      </>
+      )}
     </div>
   )
 }

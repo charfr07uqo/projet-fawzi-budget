@@ -1,16 +1,18 @@
 /**
- * Composant de formulaire de dépense - Ajout de nouvelles dépenses avec association de mois
+ * Composant de formulaire de dépense - Ajout de nouvelles dépenses avec assignation et association de mois
  *
  * Fonctionnalités métier :
  * - Saisie des détails d'une dépense (nom, montant, fréquence, catégorie)
+ * - Assignation de la dépense à une personne ou aux deux (commun)
  * - Sélection des mois associés à la dépense (par défaut tous les mois)
  * - Validation complète des données saisies
  * - Interface avec sélecteurs déroulants et cases à cocher
  * - Gestion des erreurs et feedback utilisateur
  *
  * Objectif : Permettre à l'utilisateur d'ajouter des dépenses
- * de manière structurée et validée, en associant chaque dépense
- * aux mois appropriés pour une budgétisation précise.
+ * de manière structurée et validée, en assignant chaque dépense
+ * à la bonne personne et aux mois appropriés pour une budgétisation
+ * précise et partagée.
  *
  * @created 2025-09-29
  * @author Équipe Développement
@@ -27,30 +29,58 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Plus, Receipt, DollarSign, Clock, Tag, Calendar } from 'lucide-react'
+import { Plus, Receipt, DollarSign, Clock, Tag, Calendar, Users,
+  Home, UtensilsCrossed, Car, Zap, Heart, Gamepad2, ShoppingBag,
+  GraduationCap, Shield, PiggyBank, MoreHorizontal, Plane } from 'lucide-react'
 import { useBudget } from '../../contexts/BudgetContext.jsx'
 import { validateExpenseForm } from '../../utils/validators.js'
+
+// Mapping des icônes pour les catégories
+const CATEGORY_ICONS = {
+  [COMMON_EXPENSE_CATEGORIES.HOUSING]: Home,
+  [COMMON_EXPENSE_CATEGORIES.FOOD]: UtensilsCrossed,
+  [COMMON_EXPENSE_CATEGORIES.TRANSPORTATION]: Car,
+  [COMMON_EXPENSE_CATEGORIES.UTILITIES]: Zap,
+  [COMMON_EXPENSE_CATEGORIES.HEALTHCARE]: Heart,
+  [COMMON_EXPENSE_CATEGORIES.ENTERTAINMENT]: Gamepad2,
+  [COMMON_EXPENSE_CATEGORIES.SHOPPING]: ShoppingBag,
+  [COMMON_EXPENSE_CATEGORIES.EDUCATION]: GraduationCap,
+  [COMMON_EXPENSE_CATEGORIES.INSURANCE]: Shield,
+  [COMMON_EXPENSE_CATEGORIES.SAVINGS]: PiggyBank,
+  [COMMON_EXPENSE_CATEGORIES.MISCELLANEOUS]: MoreHorizontal,
+  [COMMON_EXPENSE_CATEGORIES.TRAVEL]: Plane
+}
 import {
-  EXPENSE_FREQUENCIES,
-  EXPENSE_FREQUENCY_LABELS,
-  EXPENSE_CATEGORIES,
-  EXPENSE_CATEGORY_LABELS,
-  UI_LABELS,
-  ALL_MONTHS,
-  MONTH_LABELS
-} from '../../models/constants.js'
+    EXPENSE_FREQUENCIES,
+    EXPENSE_FREQUENCY_LABELS,
+    COMMON_EXPENSE_CATEGORIES,
+    COMMON_EXPENSE_CATEGORY_LABELS,
+    EXPENSE_CATEGORY_ICONS,
+    EXPENSE_CATEGORY_COLORS,
+    ASSIGNMENT_OPTIONS,
+    ASSIGNMENT_LABELS,
+    AMOUNT_MODES,
+    AMOUNT_MODE_LABELS,
+    UI_LABELS,
+    ALL_MONTHS,
+    MONTH_LABELS
+  } from '../../models/constants.js'
 
 /**
  * Composant de formulaire pour ajouter une nouvelle dépense
  * @returns {JSX.Element} Formulaire de dépense
  */
 function ExpenseForm() {
-  const { addExpense } = useBudget()
+  const { addExpense, people } = useBudget()
   const [formData, setFormData] = useState({
     name: '',
-    amount: '',
+    amountMode: AMOUNT_MODES.FIXED, // Mode par défaut : montant fixe
+    amount: '', // Montant fixe
+    minAmount: '', // Montant minimum pour fourchette
+    maxAmount: '', // Montant maximum pour fourchette
     frequency: '',
     category: '',
+    assignedTo: ASSIGNMENT_OPTIONS.BOTH, // Défaut à 'Commun'
     months: ALL_MONTHS // Tous les mois sélectionnés par défaut
   })
   const [errors, setErrors] = useState({})
@@ -63,7 +93,7 @@ function ExpenseForm() {
   const handleInputChange = (field, value) => {
     let processedValue = value
 
-    if (field === 'amount') {
+    if (field === 'amount' || field === 'minAmount' || field === 'maxAmount') {
       // Nettoie la saisie pour n'accepter que les nombres
       processedValue = value.replace(/[^0-9.,]/g, '').replace(',', '.')
     }
@@ -77,7 +107,9 @@ function ExpenseForm() {
     if (processedValue) {
       const validation = validateExpenseForm({
         ...formData,
-        [field]: field === 'amount' ? parseFloat(processedValue) : processedValue
+        [field]: (field === 'amount' || field === 'minAmount' || field === 'maxAmount')
+          ? parseFloat(processedValue)
+          : processedValue
       })
       setErrors(prev => ({
         ...prev,
@@ -112,6 +144,28 @@ function ExpenseForm() {
   }
 
   /**
+   * Gère le changement de mode de montant
+   */
+  const handleAmountModeChange = (mode) => {
+    setFormData(prev => ({
+      ...prev,
+      amountMode: mode,
+      // Réinitialiser les champs montant selon le mode
+      amount: mode === AMOUNT_MODES.FIXED ? prev.amount : '',
+      minAmount: mode === AMOUNT_MODES.RANGE ? prev.minAmount : '',
+      maxAmount: mode === AMOUNT_MODES.RANGE ? prev.maxAmount : ''
+    }))
+
+    // Effacer les erreurs de montant
+    setErrors(prev => ({
+      ...prev,
+      amount: null,
+      minAmount: null,
+      maxAmount: null
+    }))
+  }
+
+  /**
    * Gère les changements dans la sélection des mois
    */
   const handleMonthChange = (month, checked) => {
@@ -142,31 +196,58 @@ function ExpenseForm() {
     setIsSubmitting(true)
 
     try {
-      const validation = validateExpenseForm({
+      // Préparation des données pour validation selon le mode
+      const validationData = {
         ...formData,
-        amount: parseFloat(formData.amount)
-      })
+        amount: formData.amountMode === AMOUNT_MODES.FIXED && formData.amount
+          ? parseFloat(formData.amount)
+          : undefined,
+        minAmount: formData.amountMode === AMOUNT_MODES.RANGE && formData.minAmount
+          ? parseFloat(formData.minAmount)
+          : undefined,
+        maxAmount: formData.amountMode === AMOUNT_MODES.RANGE && formData.maxAmount
+          ? parseFloat(formData.maxAmount)
+          : undefined
+      }
+
+      const validation = validateExpenseForm(validationData)
 
       if (!validation.isValid) {
         setErrors(validation.errors)
         return
       }
 
-      // Ajout de la dépense dans le contexte
-      addExpense({
+      // Préparation des données pour l'ajout selon le mode
+      const expenseData = {
         name: formData.name.trim(),
-        amount: parseFloat(formData.amount),
+        amountMode: formData.amountMode,
         frequency: formData.frequency,
         category: formData.category,
+        assignedTo: formData.assignedTo,
         months: formData.months
-      })
+      }
+
+      // Ajout du montant selon le mode
+      if (formData.amountMode === AMOUNT_MODES.FIXED) {
+        expenseData.amount = parseFloat(formData.amount)
+      } else {
+        expenseData.minAmount = parseFloat(formData.minAmount)
+        expenseData.maxAmount = parseFloat(formData.maxAmount)
+      }
+
+      // Ajout de la dépense dans le contexte
+      addExpense(expenseData)
 
       // Réinitialisation du formulaire
       setFormData({
         name: '',
+        amountMode: AMOUNT_MODES.FIXED,
         amount: '',
+        minAmount: '',
+        maxAmount: '',
         frequency: '',
         category: '',
+        assignedTo: ASSIGNMENT_OPTIONS.BOTH,
         months: ALL_MONTHS
       })
       setErrors({})
@@ -186,10 +267,14 @@ function ExpenseForm() {
    * Vérifie si le formulaire peut être soumis
    */
   const canSubmit = formData.name.trim() &&
-                   formData.amount &&
-                   formData.frequency &&
-                   formData.category &&
-                   !isSubmitting
+                    formData.frequency &&
+                    formData.category &&
+                    formData.assignedTo &&
+                    !isSubmitting &&
+                    (
+                      (formData.amountMode === AMOUNT_MODES.FIXED && formData.amount) ||
+                      (formData.amountMode === AMOUNT_MODES.RANGE && formData.minAmount && formData.maxAmount)
+                    )
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -215,20 +300,92 @@ function ExpenseForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="expense-amount" className="flex items-center">
+        <Label className="flex items-center">
           <DollarSign className="w-4 h-4 mr-2" />
-          {UI_LABELS.AMOUNT}
+          Mode de montant
         </Label>
-        <Input
-          id="expense-amount"
-          type="text"
-          value={formData.amount}
-          onChange={(e) => handleInputChange('amount', e.target.value)}
-          placeholder="Ex: 150"
-          className={`transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.amount ? 'border-red-500' : ''}`}
-          disabled={isSubmitting}
-        />
-        {errors.amount && (
+        <div className="flex space-x-4">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="amountMode"
+              value={AMOUNT_MODES.FIXED}
+              checked={formData.amountMode === AMOUNT_MODES.FIXED}
+              onChange={(e) => handleAmountModeChange(e.target.value)}
+              className="text-primary focus:ring-primary"
+              disabled={isSubmitting}
+            />
+            <span className="text-sm">{AMOUNT_MODE_LABELS[AMOUNT_MODES.FIXED]}</span>
+          </label>
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input
+              type="radio"
+              name="amountMode"
+              value={AMOUNT_MODES.RANGE}
+              checked={formData.amountMode === AMOUNT_MODES.RANGE}
+              onChange={(e) => handleAmountModeChange(e.target.value)}
+              className="text-primary focus:ring-primary"
+              disabled={isSubmitting}
+            />
+            <span className="text-sm">{AMOUNT_MODE_LABELS[AMOUNT_MODES.RANGE]}</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center">
+          <DollarSign className="w-4 h-4 mr-2" />
+          {formData.amountMode === AMOUNT_MODES.FIXED ? 'Montant fixe' : 'Fourchette de montant'}
+        </Label>
+
+        {formData.amountMode === AMOUNT_MODES.FIXED ? (
+          <Input
+            id="expense-amount"
+            type="text"
+            value={formData.amount}
+            onChange={(e) => handleInputChange('amount', e.target.value)}
+            placeholder="Ex: 150"
+            className={`transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.amount ? 'border-red-500' : ''}`}
+            disabled={isSubmitting}
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Input
+                id="expense-min-amount"
+                type="text"
+                value={formData.minAmount}
+                onChange={(e) => handleInputChange('minAmount', e.target.value)}
+                placeholder="Min"
+                className={`transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.minAmount ? 'border-red-500' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.minAmount && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.minAmount}
+                </p>
+              )}
+            </div>
+            <div>
+              <Input
+                id="expense-max-amount"
+                type="text"
+                value={formData.maxAmount}
+                onChange={(e) => handleInputChange('maxAmount', e.target.value)}
+                placeholder="Max"
+                className={`transition-colors duration-200 focus:ring-2 focus:ring-primary focus:ring-offset-2 ${errors.maxAmount ? 'border-red-500' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.maxAmount && (
+                <p className="text-sm text-red-600 mt-1">
+                  {errors.maxAmount}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {formData.amountMode === AMOUNT_MODES.FIXED && errors.amount && (
           <p className="text-sm text-red-600">
             {errors.amount}
           </p>
@@ -316,16 +473,68 @@ function ExpenseForm() {
             <SelectValue placeholder="Sélectionner une catégorie" />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(EXPENSE_CATEGORY_LABELS).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
+            {Object.entries(COMMON_EXPENSE_CATEGORY_LABELS).map(([value, label]) => {
+              const IconComponent = CATEGORY_ICONS[value]
+              const colors = EXPENSE_CATEGORY_COLORS[value]
+
+              return (
+                <SelectItem key={value} value={value}>
+                  <div className="flex items-center space-x-3 w-full">
+                    <div className={`p-2 rounded-lg ${colors.bg} ${colors.border} border`}>
+                      <IconComponent className={`w-4 h-4 ${colors.icon}`} />
+                    </div>
+                    <span className={`font-medium ${colors.text}`}>
+                      {label}
+                    </span>
+                  </div>
+                </SelectItem>
+              )
+            })}
           </SelectContent>
         </Select>
         {errors.category && (
           <p className="text-sm text-red-600">
             {errors.category}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label className="flex items-center">
+          <Users className="w-4 h-4 mr-2" />
+          Assignation
+        </Label>
+        <Select
+          value={formData.assignedTo}
+          onValueChange={(value) => handleSelectChange('assignedTo', value)}
+          disabled={isSubmitting}
+        >
+          <SelectTrigger className={`select-trigger ${errors.assignedTo ? 'border-red-500' : ''}`}>
+            <SelectValue placeholder="Sélectionner une assignation" />
+          </SelectTrigger>
+          <SelectContent>
+            {people.map(person => (
+              <SelectItem key={person.id} value={person.id}>
+                <div className="flex items-center">
+                  <div
+                    className="w-3 h-3 rounded-full mr-2"
+                    style={{ backgroundColor: person.color }}
+                  />
+                  {person.name}
+                </div>
+              </SelectItem>
+            ))}
+            <SelectItem value={ASSIGNMENT_OPTIONS.BOTH}>
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full mr-2 bg-gray-400" />
+                Commun
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        {errors.assignedTo && (
+          <p className="text-sm text-red-600">
+            {errors.assignedTo}
           </p>
         )}
       </div>

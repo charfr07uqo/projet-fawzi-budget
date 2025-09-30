@@ -41,9 +41,137 @@ export const EXPENSE_CATEGORY_LABELS = {
   [EXPENSE_CATEGORIES.VARIABLE]: 'Variable'
 }
 
+// Catégories de dépenses courantes avec icônes et couleurs
+export const COMMON_EXPENSE_CATEGORIES = {
+  HOUSING: 'housing',
+  FOOD: 'food',
+  TRANSPORTATION: 'transportation',
+  UTILITIES: 'utilities',
+  HEALTHCARE: 'healthcare',
+  ENTERTAINMENT: 'entertainment',
+  SHOPPING: 'shopping',
+  EDUCATION: 'education',
+  INSURANCE: 'insurance',
+  SAVINGS: 'savings',
+  MISCELLANEOUS: 'miscellaneous',
+  TRAVEL: 'travel'
+}
+
+// Labels français pour les catégories courantes
+export const COMMON_EXPENSE_CATEGORY_LABELS = {
+  [COMMON_EXPENSE_CATEGORIES.HOUSING]: 'Logement',
+  [COMMON_EXPENSE_CATEGORIES.FOOD]: 'Alimentation',
+  [COMMON_EXPENSE_CATEGORIES.TRANSPORTATION]: 'Transport',
+  [COMMON_EXPENSE_CATEGORIES.UTILITIES]: 'Services publics',
+  [COMMON_EXPENSE_CATEGORIES.HEALTHCARE]: 'Santé',
+  [COMMON_EXPENSE_CATEGORIES.ENTERTAINMENT]: 'Divertissement',
+  [COMMON_EXPENSE_CATEGORIES.SHOPPING]: 'Shopping',
+  [COMMON_EXPENSE_CATEGORIES.EDUCATION]: 'Éducation',
+  [COMMON_EXPENSE_CATEGORIES.INSURANCE]: 'Assurance',
+  [COMMON_EXPENSE_CATEGORIES.SAVINGS]: 'Épargne',
+  [COMMON_EXPENSE_CATEGORIES.MISCELLANEOUS]: 'Divers',
+  [COMMON_EXPENSE_CATEGORIES.TRAVEL]: 'Voyage'
+}
+
+// Icônes pour chaque catégorie de dépense
+export const EXPENSE_CATEGORY_ICONS = {
+  [COMMON_EXPENSE_CATEGORIES.HOUSING]: 'Home',
+  [COMMON_EXPENSE_CATEGORIES.FOOD]: 'UtensilsCrossed',
+  [COMMON_EXPENSE_CATEGORIES.TRANSPORTATION]: 'Car',
+  [COMMON_EXPENSE_CATEGORIES.UTILITIES]: 'Zap',
+  [COMMON_EXPENSE_CATEGORIES.HEALTHCARE]: 'Heart',
+  [COMMON_EXPENSE_CATEGORIES.ENTERTAINMENT]: 'Gamepad2',
+  [COMMON_EXPENSE_CATEGORIES.SHOPPING]: 'ShoppingBag',
+  [COMMON_EXPENSE_CATEGORIES.EDUCATION]: 'GraduationCap',
+  [COMMON_EXPENSE_CATEGORIES.INSURANCE]: 'Shield',
+  [COMMON_EXPENSE_CATEGORIES.SAVINGS]: 'PiggyBank',
+  [COMMON_EXPENSE_CATEGORIES.MISCELLANEOUS]: 'MoreHorizontal',
+  [COMMON_EXPENSE_CATEGORIES.TRAVEL]: 'Plane'
+}
+
+// Schémas de couleurs pour chaque catégorie
+export const EXPENSE_CATEGORY_COLORS = {
+  [COMMON_EXPENSE_CATEGORIES.HOUSING]: {
+    bg: 'bg-blue-100',
+    text: 'text-blue-800',
+    border: 'border-blue-200',
+    icon: 'text-blue-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.FOOD]: {
+    bg: 'bg-green-100',
+    text: 'text-green-800',
+    border: 'border-green-200',
+    icon: 'text-green-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.TRANSPORTATION]: {
+    bg: 'bg-purple-100',
+    text: 'text-purple-800',
+    border: 'border-purple-200',
+    icon: 'text-purple-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.UTILITIES]: {
+    bg: 'bg-yellow-100',
+    text: 'text-yellow-800',
+    border: 'border-yellow-200',
+    icon: 'text-yellow-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.HEALTHCARE]: {
+    bg: 'bg-red-100',
+    text: 'text-red-800',
+    border: 'border-red-200',
+    icon: 'text-red-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.ENTERTAINMENT]: {
+    bg: 'bg-pink-100',
+    text: 'text-pink-800',
+    border: 'border-pink-200',
+    icon: 'text-pink-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.SHOPPING]: {
+    bg: 'bg-indigo-100',
+    text: 'text-indigo-800',
+    border: 'border-indigo-200',
+    icon: 'text-indigo-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.EDUCATION]: {
+    bg: 'bg-orange-100',
+    text: 'text-orange-800',
+    border: 'border-orange-200',
+    icon: 'text-orange-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.INSURANCE]: {
+    bg: 'bg-teal-100',
+    text: 'text-teal-800',
+    border: 'border-teal-200',
+    icon: 'text-teal-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.SAVINGS]: {
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-800',
+    border: 'border-emerald-200',
+    icon: 'text-emerald-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.MISCELLANEOUS]: {
+    bg: 'bg-gray-100',
+    text: 'text-gray-800',
+    border: 'border-gray-200',
+    icon: 'text-gray-600'
+  },
+  [COMMON_EXPENSE_CATEGORIES.TRAVEL]: {
+    bg: 'bg-cyan-100',
+    text: 'text-cyan-800',
+    border: 'border-cyan-200',
+    icon: 'text-cyan-600'
+  }
+}
+
 // Actions du reducer BudgetContext
 export const BUDGET_ACTIONS = {
-  SET_SALARY: 'SET_SALARY',
+  SET_PEOPLE: 'SET_PEOPLE',
+  ADD_PERSON: 'ADD_PERSON',
+  UPDATE_PERSON: 'UPDATE_PERSON',
+  DELETE_PERSON: 'DELETE_PERSON',
+  SET_PERSON_SALARY: 'SET_PERSON_SALARY',
   ADD_EXPENSE: 'ADD_EXPENSE',
   UPDATE_EXPENSE: 'UPDATE_EXPENSE',
   DELETE_EXPENSE: 'DELETE_EXPENSE',
@@ -99,4 +227,46 @@ export const MONTH_LABELS = {
   '2025-10': 'Octobre',
   '2025-11': 'Novembre',
   '2025-12': 'Décembre'
+}
+
+// Personnes par défaut
+export const DEFAULT_PEOPLE = [
+  {
+    id: 'person-a',
+    name: 'Personne A',
+    salary: 0,
+    color: 'pink'
+  },
+  {
+    id: 'person-b',
+    name: 'Personne B',
+    salary: 0,
+    color: 'blue'
+  }
+]
+
+// Options d'assignation des dépenses
+export const ASSIGNMENT_OPTIONS = {
+  PERSON_A: 'person-a',
+  PERSON_B: 'person-b',
+  BOTH: 'commun'
+}
+
+// Labels français pour les options d'assignation
+export const ASSIGNMENT_LABELS = {
+  [ASSIGNMENT_OPTIONS.PERSON_A]: 'Personne A',
+  [ASSIGNMENT_OPTIONS.PERSON_B]: 'Personne B',
+  [ASSIGNMENT_OPTIONS.BOTH]: 'Commun'
+}
+
+// Modes de saisie du montant
+export const AMOUNT_MODES = {
+  FIXED: 'fixed',
+  RANGE: 'range'
+}
+
+// Labels français pour les modes de montant
+export const AMOUNT_MODE_LABELS = {
+  [AMOUNT_MODES.FIXED]: 'Montant fixe',
+  [AMOUNT_MODES.RANGE]: 'Fourchette de montant'
 }

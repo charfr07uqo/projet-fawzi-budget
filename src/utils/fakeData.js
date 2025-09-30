@@ -14,7 +14,7 @@
  * @author Équipe Développement
  */
 
-import { EXPENSE_FREQUENCIES, EXPENSE_CATEGORIES, ALL_MONTHS } from '../models/constants.js'
+import { EXPENSE_FREQUENCIES, COMMON_EXPENSE_CATEGORIES, ALL_MONTHS, DEFAULT_PEOPLE, ASSIGNMENT_OPTIONS } from '../models/constants.js'
 
 /**
  * Génère un ensemble complet de données fictives pour les dépenses
@@ -24,126 +24,179 @@ import { EXPENSE_FREQUENCIES, EXPENSE_CATEGORIES, ALL_MONTHS } from '../models/c
  */
 export function generateFakeExpenses() {
   const fakeExpenses = [
-    // Dépenses fixes mensuelles (logement, assurances, abonnements)
+    // Housing expenses
     {
       name: 'Loyer',
       amount: 1200,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.FIXED
+      category: COMMON_EXPENSE_CATEGORIES.HOUSING,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
     },
+
+    // Utilities expenses
     {
       name: 'Internet',
       amount: 45,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.FIXED
+      category: COMMON_EXPENSE_CATEGORIES.UTILITIES,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
     },
     {
       name: 'Électricité',
       amount: 85,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.FIXED
-    },
-    {
-      name: 'Assurance habitation',
-      amount: 35,
-      frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.FIXED
-    },
-    {
-      name: 'Assurance voiture',
-      amount: 70,
-      frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.FIXED
+      category: COMMON_EXPENSE_CATEGORIES.UTILITIES,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
     },
     {
       name: 'Téléphone mobile',
       amount: 25,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.FIXED
+      category: COMMON_EXPENSE_CATEGORIES.UTILITIES,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_A
     },
 
-    // Dépenses variables mensuelles (alimentation, transport)
+    // Insurance expenses
+    {
+      name: 'Assurance habitation',
+      amount: 35,
+      frequency: EXPENSE_FREQUENCIES.MONTHLY,
+      category: COMMON_EXPENSE_CATEGORIES.INSURANCE,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
+    },
+    {
+      name: 'Assurance voiture',
+      amount: 70,
+      frequency: EXPENSE_FREQUENCIES.MONTHLY,
+      category: COMMON_EXPENSE_CATEGORIES.INSURANCE,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_A
+    },
+
+    // Food expenses
     {
       name: 'Courses alimentaires',
       amount: 350,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.VARIABLE
-    },
-    {
-      name: 'Carburant',
-      amount: 120,
-      frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.VARIABLE
+      category: COMMON_EXPENSE_CATEGORIES.FOOD,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
     },
     {
       name: 'Restaurant',
       amount: 200,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.VARIABLE
+      category: COMMON_EXPENSE_CATEGORIES.FOOD,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_B
     },
-    {
-      name: 'Shopping vêtements',
-      amount: 150,
-      frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.VARIABLE
-    },
-
-    // Dépenses hebdomadaires (loisirs, sorties)
     {
       name: 'Café/restaurant',
       amount: 25,
       frequency: EXPENSE_FREQUENCIES.WEEKLY,
-      category: EXPENSE_CATEGORIES.VARIABLE
+      category: COMMON_EXPENSE_CATEGORIES.FOOD,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_A
     },
+
+    // Transportation expenses
     {
-      name: 'Loisirs',
-      amount: 50,
-      frequency: EXPENSE_FREQUENCIES.WEEKLY,
-      category: EXPENSE_CATEGORIES.VARIABLE
+      name: 'Carburant',
+      amount: 120,
+      frequency: EXPENSE_FREQUENCIES.MONTHLY,
+      category: COMMON_EXPENSE_CATEGORIES.TRANSPORTATION,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_A
     },
     {
       name: 'Transport en commun',
       amount: 30,
       frequency: EXPENSE_FREQUENCIES.WEEKLY,
-      category: EXPENSE_CATEGORIES.VARIABLE
+      category: COMMON_EXPENSE_CATEGORIES.TRANSPORTATION,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_B
     },
 
-    // Dépenses annuelles (vacances, sports)
+    // Shopping expenses
+    {
+      name: 'Shopping vêtements',
+      amount: 150,
+      frequency: EXPENSE_FREQUENCIES.MONTHLY,
+      category: COMMON_EXPENSE_CATEGORIES.SHOPPING,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_B
+    },
+
+    // Entertainment expenses
+    {
+      name: 'Loisirs',
+      amount: 50,
+      frequency: EXPENSE_FREQUENCIES.WEEKLY,
+      category: COMMON_EXPENSE_CATEGORIES.ENTERTAINMENT,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
+    },
     {
       name: 'Sport (abonnement annuel)',
       amount: 300,
       frequency: EXPENSE_FREQUENCIES.ANNUAL,
-      category: EXPENSE_CATEGORIES.FIXED
+      category: COMMON_EXPENSE_CATEGORIES.ENTERTAINMENT,
+      assignedTo: ASSIGNMENT_OPTIONS.PERSON_A
     },
+
+    // Travel expenses
     {
       name: 'Vacances',
       amount: 2500,
       frequency: EXPENSE_FREQUENCIES.ANNUAL,
-      category: EXPENSE_CATEGORIES.VARIABLE
+      category: COMMON_EXPENSE_CATEGORIES.TRAVEL,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
     },
+
+    // Miscellaneous expenses
     {
       name: 'Impôts locaux',
       amount: 800,
       frequency: EXPENSE_FREQUENCIES.ANNUAL,
-      category: EXPENSE_CATEGORIES.FIXED
+      category: COMMON_EXPENSE_CATEGORIES.MISCELLANEOUS,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH
     },
 
-    // Dépenses saisonnières (étés, hiver)
+    // Seasonal utilities (heating and cooling)
     {
       name: 'Climatisation été',
       amount: 60,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.VARIABLE,
+      category: COMMON_EXPENSE_CATEGORIES.UTILITIES,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH,
       months: ['2025-06', '2025-07', '2025-08'] // Juin à août
     },
     {
       name: 'Chauffage hiver',
       amount: 150,
       frequency: EXPENSE_FREQUENCIES.MONTHLY,
-      category: EXPENSE_CATEGORIES.VARIABLE,
+      category: COMMON_EXPENSE_CATEGORIES.UTILITIES,
+      assignedTo: ASSIGNMENT_OPTIONS.BOTH,
       months: ['2025-12', '2025-01', '2025-02', '2025-03'] // Décembre à mars
     }
   ]
 
   return fakeExpenses
+}
+
+/**
+ * Génère un ensemble de données fictives pour les revenus (personnes avec salaires)
+ * Inclut Fawzi et son partenaire avec des salaires représentatifs
+ *
+ * @returns {Array<Object>} Liste d'objets person prêts à être ajoutés
+ */
+export function generateFakeIncomes() {
+  const fakeIncomes = [
+    {
+      id: 'person-a',
+      name: 'Personne A',
+      salary: 100000,
+      color: 'pink'
+    },
+    {
+      id: 'person-b',
+      name: 'Personne B',
+      salary: 100000,
+      color: 'blue'
+    }
+  ]
+
+  return fakeIncomes
 }

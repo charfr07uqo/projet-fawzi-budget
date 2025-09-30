@@ -17,18 +17,27 @@
  * @author Équipe Développement
  */
 import { useBudget } from '../../contexts/BudgetContext.jsx'
-import { getMonthlyAmount } from '../../utils/calculations.js'
+import { getMonthlyAmount, calculatePersonMonthlyBudget } from '../../utils/calculations.js'
 import { formatCurrency } from '../../utils/formatters.js'
 import { EXPENSE_FREQUENCIES, EXPENSE_FREQUENCY_LABELS, EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS, MONTH_LABELS, ALL_MONTHS } from '../../models/constants.js'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card.jsx'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 
 /**
  * Composant d'affichage de la vue budgétaire mensuelle
  * Calcule et affiche les métriques budgétaires mensuelles
+ * Supporte les vues ménage et individuelles
  */
-function MonthlyBudgetView() {
-  const { salary, expenses, monthlyBudgetSummary } = useBudget()
+function MonthlyBudgetView({ viewMode = 'household' }) {
+  const { people, expenses, monthlyBudgetSummary } = useBudget()
+
+  // Calculs pour la vue individuelle
+  const personBudgets = viewMode === 'per-person'
+    ? people.map(person => ({
+        ...person,
+        budget: calculatePersonMonthlyBudget(person.id, people, expenses)
+      })).filter(person => person.budget) // Filtrer les personnes sans budget
+    : []
 
   // Mois en cours (format YYYY-MM)
   const currentMonth = new Date().toISOString().slice(0, 7)
@@ -160,7 +169,7 @@ function MonthlyBudgetView() {
       </div>
 
       {/* Graphiques */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full space-y-6">
         {/* Graphique en barres - Dépenses par catégorie ce mois */}
         <Card>
           <CardHeader>

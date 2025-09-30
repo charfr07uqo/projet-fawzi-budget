@@ -16,10 +16,8 @@
  */
 
 import { useBudget } from '../../contexts/BudgetContext.jsx'
-import { Receipt, Upload } from 'lucide-react'
+import { Receipt } from 'lucide-react'
 import { UI_LABELS } from '../../models/constants.js'
-import { generateFakeExpenses } from '../../utils/fakeData.js'
-import { Button } from '../ui/button.jsx'
 import ExpenseItem from './ExpenseItem.jsx'
 
 /**
@@ -27,39 +25,18 @@ import ExpenseItem from './ExpenseItem.jsx'
  * @returns {JSX.Element} Liste des dépenses
  */
 function ExpenseList() {
-  const { expenses, addExpense } = useBudget()
+  const { expenses } = useBudget()
 
   // Tri des dépenses par date de création (plus récentes en premier)
   const sortedExpenses = [...expenses].sort((a, b) =>
     new Date(b.createdAt) - new Date(a.createdAt)
   )
 
-  /**
-   * Charge et ajoute des données fictives aux dépenses
-   */
-  const loadFakeData = () => {
-    const fakeExpenses = generateFakeExpenses()
-    fakeExpenses.forEach(expense => {
-      addExpense(expense)
-    })
-  }
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
-          Dépenses ({expenses.length})
-        </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={loadFakeData}
-          className="flex items-center gap-2"
-        >
-          <Upload className="w-4 h-4" />
-          Charger données fictives
-        </Button>
-      </div>
+      <h3 className="text-lg font-semibold">
+        Dépenses ({expenses.length})
+      </h3>
 
       {sortedExpenses.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
