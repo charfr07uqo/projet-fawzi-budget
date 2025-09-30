@@ -17,7 +17,7 @@
 import './App.css'
 import { useState } from 'react'
 import { BudgetProvider, useBudget } from './contexts/BudgetContext.jsx'
-import { Calculator, Upload, RotateCcw } from 'lucide-react'
+import { Calculator, Upload, RotateCcw, User } from 'lucide-react'
 import { Button } from './components/ui/button.jsx'
 import {
   Dialog,
@@ -34,6 +34,7 @@ import ExpenseList from './components/budget/ExpenseList.jsx'
 import BudgetSummary from './components/budget/BudgetSummary.jsx'
 import { DEFAULT_PEOPLE } from './models/constants.js'
 import { generateFakeExpenses, generateFakeIncomes } from './utils/fakeData.js'
+import { generateUniqueId } from './utils/idGenerator.js'
 
 function AppContent() {
   const { people, addPerson, addExpense, resetBudget } = useBudget()
@@ -142,13 +143,24 @@ function AppContent() {
                 💰 Définir les revenus
               </h3>
               {people.length === 0 ? (
-                <Button
-                  onClick={() => addPerson(DEFAULT_PEOPLE[0])}
-                  variant="default"
-                  className="w-full"
-                >
-                  Ajouter un salaire
-                </Button>
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-4">
+                    Aucun revenu défini. Ajoutez des personnes pour commencer.
+                  </p>
+                  <Button
+                    onClick={() => addPerson({
+                      id: `person-${generateUniqueId()}`,
+                      name: '',
+                      salary: 0,
+                      color: 'pink'
+                    })}
+                    variant="default"
+                    className="flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Ajouter une personne
+                  </Button>
+                </div>
               ) : (
                 <SalaryForm />
               )}

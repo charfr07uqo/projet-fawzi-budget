@@ -20,6 +20,7 @@
 import { createContext, useContext, useReducer, useMemo } from 'react'
 import { BUDGET_ACTIONS, ALL_MONTHS, DEFAULT_PEOPLE } from '../models/constants.js'
 import { calculateAnnualBudget, calculateMonthlyBudget } from '../utils/calculations.js'
+import { generateUniqueId } from '../utils/idGenerator.js'
 
 // État initial du budget
 const initialState = {
@@ -31,29 +32,40 @@ const initialState = {
 /**
  * Migre l'état existant vers la nouvelle structure avec personnes
  * Convertit un salaire unique en première personne si nécessaire
+ * Évite la duplication en ne migrant que si nécessaire
  * @param {object} state - État actuel à migrer
  * @returns {object} État migré
  */
 const migrateState = (state) => {
-  // Si l'état a déjà la structure people, pas de migration nécessaire
-  if (state.people) {
+  // Si l'état a déjà la structure people (y compris tableau vide), pas de migration nécessaire
+  if (state.people !== undefined) {
     return state
   }
 
-  // Migration : convertir salary en première personne
-  const migratedPeople = [...DEFAULT_PEOPLE]
-  if (state.salary && state.salary > 0) {
-    migratedPeople[0] = {
-      ...migratedPeople[0],
-      salary: state.salary
-    }
+  // Si l'état est complètement vide ou n'a pas de données à migrer, retourner l'état initial
+  if (!state || Object.keys(state).length === 0) {
+    return state
   }
+
+  // Migration : convertir salary en première personne seulement si nécessaire
+  let migratedPeople = []
+
+  // Si on a un ancien salaire à migrer, créer seulement la première personne avec ce salaire
+  if (state.salary && state.salary > 0) {
+    migratedPeople = [{
+      ...DEFAULT_PEOPLE[0],
+      salary: state.salary
+    }]
+  }
+  // Sinon, démarrer avec un tableau vide (pas de personnes par défaut automatiques)
 
   return {
     ...state,
     people: migratedPeople,
-    // Supprimer l'ancien champ salary
-    salary: undefined
+    expenses: state.expenses || [], // Assurer que expenses existe
+    isLoading: state.isLoading || false, // Assurer que isLoading existe
+    // Supprimer l'ancien champ salary seulement s'il existait
+    ...(state.salary !== undefined && { salary: undefined })
   }
 }
 
@@ -114,7 +126,7 @@ function budgetReducer(state, action) {
           ...action.payload,
           assignedTo: action.payload.assignedTo || state.people[0]?.id, // Défaut à première personne si non spécifié
           months: action.payload.months || ALL_MONTHS, // Défaut à tous les mois si non spécifié
-          id: Date.now().toString(), // ID unique basé sur timestamp
+          id: generateUniqueId(), // ID unique garanti sans collision
           createdAt: new Date()
         }]
       }
@@ -142,7 +154,13 @@ function budgetReducer(state, action) {
       }
 
     case BUDGET_ACTIONS.RESET_BUDGET:
-      return { ...initialState }
+      console.log('BudgetContext: RESET_BUDGET action dispatched, returning initialState:', initialState)
+      // Ensure we return a completely fresh state object
+      return {
+        people: [],
+        expenses: [],
+        isLoading: false
+      }
 
     default:
       return state
@@ -158,7 +176,11 @@ const BudgetContext = createContext()
  */
 export function BudgetProvider({ children }) {
   const [rawState, dispatch] = useReducer(budgetReducer, initialState)
-  const state = useMemo(() => migrateState(rawState), [rawState])
+  const state = useMemo(() => {
+    const migratedState = migrateState(rawState)
+    console.log('BudgetContext: state migration - rawState:', rawState, 'migratedState:', migratedState)
+    return migratedState
+  }, [rawState])
 
   // Calculs budgétaires automatiques avec mémorisation
   const annualBudgetSummary = useMemo(() => {
@@ -257,7 +279,9 @@ export function BudgetProvider({ children }) {
    * Réinitialise tout le budget
    */
   const resetBudget = () => {
+    console.log('BudgetContext: resetBudget called, dispatching RESET_BUDGET')
     dispatch({ type: BUDGET_ACTIONS.RESET_BUDGET })
+    console.log('BudgetContext: new state after reset:', state)
   }
 
   // Valeur fournie par le contexte

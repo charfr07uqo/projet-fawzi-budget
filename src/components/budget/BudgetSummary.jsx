@@ -39,7 +39,11 @@ function BudgetSummary() {
           <Button
             variant={viewMode === 'household' ? 'default' : 'outline'}
             onClick={() => setViewMode('household')}
-            className="min-w-[140px] transition-all duration-200 hover:scale-105"
+            className={`min-w-[140px] transition-all duration-200 hover:scale-105 ${
+              viewMode === 'household'
+                ? 'shadow-lg ring-2 ring-blue-500/50 bg-blue-600 hover:bg-blue-700 font-semibold'
+                : 'hover:shadow-md'
+            }`}
           >
             <Users className="w-4 h-4 mr-2" />
             Vue Ménage
@@ -47,7 +51,11 @@ function BudgetSummary() {
           <Button
             variant={viewMode === 'per-person' ? 'default' : 'outline'}
             onClick={() => setViewMode('per-person')}
-            className="min-w-[140px] transition-all duration-200 hover:scale-105"
+            className={`min-w-[140px] transition-all duration-200 hover:scale-105 ${
+              viewMode === 'per-person'
+                ? 'shadow-lg ring-2 ring-blue-500/50 bg-blue-600 hover:bg-blue-700 font-semibold'
+                : 'hover:shadow-md'
+            }`}
           >
             <User className="w-4 h-4 mr-2" />
             Vue Individuelle
@@ -59,7 +67,11 @@ function BudgetSummary() {
           <Button
             variant={currentView === 'annual' ? 'default' : 'outline'}
             onClick={() => setCurrentView('annual')}
-            className="min-w-[120px] transition-all duration-200 hover:scale-105"
+            className={`min-w-[120px] transition-all duration-200 hover:scale-105 ${
+              currentView === 'annual'
+                ? 'shadow-lg ring-2 ring-green-500/50 bg-green-600 hover:bg-green-700 font-semibold'
+                : 'hover:shadow-md'
+            }`}
           >
             <Calendar className="w-4 h-4 mr-2" />
             Vue Annuelle
@@ -67,7 +79,11 @@ function BudgetSummary() {
           <Button
             variant={currentView === 'monthly' ? 'default' : 'outline'}
             onClick={() => setCurrentView('monthly')}
-            className="min-w-[120px] transition-all duration-200 hover:scale-105"
+            className={`min-w-[120px] transition-all duration-200 hover:scale-105 ${
+              currentView === 'monthly'
+                ? 'shadow-lg ring-2 ring-green-500/50 bg-green-600 hover:bg-green-700 font-semibold'
+                : 'hover:shadow-md'
+            }`}
           >
             <CalendarDays className="w-4 h-4 mr-2" />
             Vue Mensuelle

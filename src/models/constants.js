@@ -229,19 +229,59 @@ export const MONTH_LABELS = {
   '2025-12': 'Décembre'
 }
 
-// Personnes par défaut
+// Palette de couleurs disponibles pour les personnes
+export const PERSON_COLORS = {
+  PINK: 'pink',
+  BLUE: 'blue',
+  GREEN: 'green',
+  PURPLE: 'purple',
+  ORANGE: 'orange',
+  RED: 'red',
+  TEAL: 'teal',
+  INDIGO: 'indigo',
+  YELLOW: 'yellow',
+  CYAN: 'cyan',
+  EMERALD: 'emerald',
+  ROSE: 'rose'
+}
+
+// Personnes par défaut avec couleurs étendues
 export const DEFAULT_PEOPLE = [
   {
     id: 'person-a',
     name: 'Personne A',
     salary: 0,
-    color: 'pink'
+    color: PERSON_COLORS.PINK
   },
   {
     id: 'person-b',
     name: 'Personne B',
     salary: 0,
-    color: 'blue'
+    color: PERSON_COLORS.BLUE
+  },
+  {
+    id: 'person-c',
+    name: 'Personne C',
+    salary: 0,
+    color: PERSON_COLORS.GREEN
+  },
+  {
+    id: 'person-d',
+    name: 'Personne D',
+    salary: 0,
+    color: PERSON_COLORS.PURPLE
+  },
+  {
+    id: 'person-e',
+    name: 'Personne E',
+    salary: 0,
+    color: PERSON_COLORS.ORANGE
+  },
+  {
+    id: 'person-f',
+    name: 'Personne F',
+    salary: 0,
+    color: PERSON_COLORS.RED
   }
 ]
 
@@ -249,6 +289,10 @@ export const DEFAULT_PEOPLE = [
 export const ASSIGNMENT_OPTIONS = {
   PERSON_A: 'person-a',
   PERSON_B: 'person-b',
+  PERSON_C: 'person-c',
+  PERSON_D: 'person-d',
+  PERSON_E: 'person-e',
+  PERSON_F: 'person-f',
   BOTH: 'commun'
 }
 
@@ -256,6 +300,10 @@ export const ASSIGNMENT_OPTIONS = {
 export const ASSIGNMENT_LABELS = {
   [ASSIGNMENT_OPTIONS.PERSON_A]: 'Personne A',
   [ASSIGNMENT_OPTIONS.PERSON_B]: 'Personne B',
+  [ASSIGNMENT_OPTIONS.PERSON_C]: 'Personne C',
+  [ASSIGNMENT_OPTIONS.PERSON_D]: 'Personne D',
+  [ASSIGNMENT_OPTIONS.PERSON_E]: 'Personne E',
+  [ASSIGNMENT_OPTIONS.PERSON_F]: 'Personne F',
   [ASSIGNMENT_OPTIONS.BOTH]: 'Commun'
 }
 

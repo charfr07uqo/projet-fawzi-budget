@@ -19,6 +19,7 @@ import { useBudget } from '../../contexts/BudgetContext.jsx'
 import { Receipt } from 'lucide-react'
 import { UI_LABELS } from '../../models/constants.js'
 import ExpenseItem from './ExpenseItem.jsx'
+import { useEffect, useRef } from 'react'
 
 /**
  * Composant d'affichage de la liste des dépenses
@@ -26,6 +27,12 @@ import ExpenseItem from './ExpenseItem.jsx'
  */
 function ExpenseList() {
   const { expenses } = useBudget()
+  const previousExpensesRef = useRef()
+
+  // Track changes in expenses for debugging (can be removed in production)
+  useEffect(() => {
+    previousExpensesRef.current = expenses
+  }, [expenses])
 
   // Tri des dépenses par date de création (plus récentes en premier)
   const sortedExpenses = [...expenses].sort((a, b) =>

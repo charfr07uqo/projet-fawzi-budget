@@ -5,7 +5,7 @@
  * - Affichage des revenus, dépenses et budget restant mensuels
  * - Calcul et affichage du ratio de dépenses en pourcentage
  * - Répartition des dépenses par fréquence (hebdomadaire/mensuel/annuel)
- * - Graphique en barres des dépenses par catégorie pour le mois en cours
+ * - Graphique en camembert des dépenses par catégorie pour le mois en cours
  * - Graphique linéaire des tendances budgétaires sur l'année
  * - Codage couleur pour indiquer surplus ou déficit
  *
@@ -16,11 +16,13 @@
  * @created 2025-09-29
  * @author Équipe Développement
  */
+import { useState } from 'react'
 import { useBudget } from '../../contexts/BudgetContext.jsx'
 import { getMonthlyAmount, calculatePersonMonthlyBudget } from '../../utils/calculations.js'
 import { formatCurrency } from '../../utils/formatters.js'
-import { EXPENSE_FREQUENCIES, EXPENSE_FREQUENCY_LABELS, EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS, MONTH_LABELS, ALL_MONTHS } from '../../models/constants.js'
+import { EXPENSE_FREQUENCIES, EXPENSE_FREQUENCY_LABELS, EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS, MONTH_LABELS, ALL_MONTHS, COMMON_EXPENSE_CATEGORIES, COMMON_EXPENSE_CATEGORY_LABELS, EXPENSE_CATEGORY_COLORS } from '../../models/constants.js'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card.jsx'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select.jsx'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 
 /**
@@ -30,6 +32,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
  */
 function MonthlyBudgetView({ viewMode = 'household' }) {
   const { people, expenses, monthlyBudgetSummary } = useBudget()
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
 
   // Calculs pour la vue individuelle
   const personBudgets = viewMode === 'per-person'
@@ -54,29 +57,50 @@ function MonthlyBudgetView({ viewMode = 'household' }) {
   const annualExpenses = frequencyBreakdown[EXPENSE_FREQUENCIES.ANNUAL] || 0
 
   // Revenus mensuels
-  const monthlyIncome = salary ? salary / 12 : 0
+  const totalAnnualSalary = people.reduce((total, person) => total + (person.salary || 0), 0)
+  const monthlyIncome = totalAnnualSalary / 12
 
-  // Données pour le graphique en barres - Dépenses par catégorie pour le mois en cours
-  const currentMonthCategoryData = expenses.reduce((acc, expense) => {
-    if (expense.months && expense.months.includes(currentMonth)) {
+  // Données pour le graphique en camembert - Dépenses par catégorie pour le mois sélectionné
+  const selectedMonthCategoryData = expenses.reduce((acc, expense) => {
+    if (expense.months && expense.months.includes(selectedMonth)) {
       const monthlyAmount = getMonthlyAmount(expense.amount, expense.frequency)
       acc[expense.category] = (acc[expense.category] || 0) + monthlyAmount
     }
     return acc
   }, {})
 
-  const categoryChartData = [
-    {
-      category: EXPENSE_CATEGORY_LABELS[EXPENSE_CATEGORIES.FIXED],
-      amount: currentMonthCategoryData[EXPENSE_CATEGORIES.FIXED] || 0,
-      color: '#3b82f6' // Bleu
-    },
-    {
-      category: EXPENSE_CATEGORY_LABELS[EXPENSE_CATEGORIES.VARIABLE],
-      amount: currentMonthCategoryData[EXPENSE_CATEGORIES.VARIABLE] || 0,
-      color: '#f59e0b' // Orange
+  const pieChartData = Object.entries(selectedMonthCategoryData)
+    .map(([categoryKey, amount]) => {
+      const categoryLabel = COMMON_EXPENSE_CATEGORY_LABELS[categoryKey] || EXPENSE_CATEGORY_LABELS[categoryKey] || categoryKey
+      const categoryColors = EXPENSE_CATEGORY_COLORS[categoryKey]
+
+      return {
+        name: categoryLabel,
+        value: amount,
+        color: categoryColors ? getColorValue(categoryColors.icon) : '#6b7280' // Couleur par défaut si non définie
+      }
+    })
+    .filter(item => item.value > 0) // Ne montrer que les catégories avec des dépenses
+    .sort((a, b) => b.value - a.value) // Trier par montant décroissant
+
+  // Fonction utilitaire pour extraire la couleur hexadécimale des classes Tailwind
+  function getColorValue(tailwindClass) {
+    const colorMap = {
+      'text-blue-600': '#2563eb',
+      'text-green-600': '#059669',
+      'text-purple-600': '#7c3aed',
+      'text-yellow-600': '#d97706',
+      'text-red-600': '#dc2626',
+      'text-pink-600': '#db2777',
+      'text-indigo-600': '#4f46e5',
+      'text-orange-600': '#ea580c',
+      'text-teal-600': '#0d9488',
+      'text-emerald-600': '#047857',
+      'text-gray-600': '#4b5563',
+      'text-cyan-600': '#0891b2'
     }
-  ].filter(item => item.amount > 0) // Ne montrer que les catégories avec des dépenses
+    return colorMap[tailwindClass] || '#6b7280'
+  }
 
   // Données pour le graphique linéaire - Tendances budgétaires sur l'année
   const budgetTrendsData = ALL_MONTHS.map(month => {
@@ -87,7 +111,8 @@ function MonthlyBudgetView({ viewMode = 'household' }) {
       return total
     }, 0)
 
-    const monthlyIncomeForMonth = salary ? salary / 12 : 0
+    const totalAnnualSalaryForMonth = people.reduce((total, person) => total + (person.salary || 0), 0)
+    const monthlyIncomeForMonth = totalAnnualSalaryForMonth / 12
     const remainingBudget = monthlyIncomeForMonth - monthlyExpensesForMonth
 
     return {
@@ -170,29 +195,58 @@ function MonthlyBudgetView({ viewMode = 'household' }) {
 
       {/* Graphiques */}
       <div className="w-full space-y-6">
-        {/* Graphique en barres - Dépenses par catégorie ce mois */}
+        {/* Graphique en camembert - Dépenses par catégorie ce mois */}
         <Card>
-          <CardHeader>
-            <CardTitle>Dépenses par Catégorie - {MONTH_LABELS[currentMonth] || currentMonth}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {categoryChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={categoryChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="category" />
-                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                  <Tooltip formatter={(value) => [formatCurrency(value), 'Montant']} />
-                  <Bar dataKey="amount" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-64 text-muted-foreground">
-                Aucune dépense pour ce mois
-              </div>
-            )}
-          </CardContent>
-        </Card>
+           <CardHeader>
+             <div className="flex items-center justify-between">
+               <CardTitle>Répartition des Dépenses - {MONTH_LABELS[selectedMonth] || selectedMonth}</CardTitle>
+               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                 <SelectTrigger className="w-[180px]">
+                   <SelectValue placeholder="Sélectionner un mois" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {ALL_MONTHS.map(month => (
+                     <SelectItem key={month} value={month}>
+                       {MONTH_LABELS[month] || month}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+           </CardHeader>
+           <CardContent>
+             {pieChartData.length > 0 ? (
+               <ResponsiveContainer width="100%" height={525}>
+                 <PieChart>
+                   <Pie
+                     data={pieChartData}
+                     cx="50%"
+                     cy="50%"
+                     labelLine={false}
+                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                     outerRadius="80%"
+                     fill="#8884d8"
+                     dataKey="value"
+                   >
+                     {pieChartData.map((entry, index) => (
+                       <Cell key={`cell-${index}`} fill={entry.color} />
+                     ))}
+                   </Pie>
+                   <Tooltip formatter={(value) => [formatCurrency(value), 'Montant']} />
+                   <Legend
+                     verticalAlign="bottom"
+                     height={36}
+                     formatter={(value) => <span style={{ color: '#374151' }}>{value}</span>}
+                   />
+                 </PieChart>
+               </ResponsiveContainer>
+             ) : (
+               <div className="flex items-center justify-center h-64 text-muted-foreground">
+                 Aucune dépense pour ce mois
+               </div>
+             )}
+           </CardContent>
+         </Card>
 
         {/* Graphique linéaire - Tendances budgétaires */}
         <Card>
@@ -200,7 +254,7 @@ function MonthlyBudgetView({ viewMode = 'household' }) {
             <CardTitle>Tendances Budgétaires Annuelles</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={450}>
               <LineChart data={budgetTrendsData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
